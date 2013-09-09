@@ -18,6 +18,12 @@
  */
 package org.apache.aries.blueprint.container;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,8 +35,6 @@ import org.apache.aries.blueprint.di.ExecutionContext;
 import org.apache.aries.blueprint.di.PassThroughRecipe;
 import org.junit.Test;
 import org.osgi.service.blueprint.container.ComponentDefinitionException;
-
-import static org.junit.Assert.*;
 
 public class BeanRecipeTest {
 	static class Base {
@@ -61,6 +65,20 @@ public class BeanRecipeTest {
 		public static String getObject() { return null; }
 		public static Object getBasic(int n) { return 1; }
 	}
+
+    static interface EventMessage<T> {
+    }
+
+    static interface SequentialPolicy<T> {
+    }
+
+    static class DummySequentialPolicy implements SequentialPolicy<Object> {
+    }
+
+    static class MessageDriven {
+        public MessageDriven(SequentialPolicy<? super EventMessage<?>> policy) {
+        }
+    }
 
     static public interface Example<A> {}
     static public class ExampleImpl implements Example<String> {}
@@ -123,6 +141,17 @@ public class BeanRecipeTest {
         BlueprintContainerImpl container = new BlueprintContainerImpl(null, null, null, null, null, null, null, null, null);
         BeanRecipe recipe = new BeanRecipe("example", container, ExampleService.class, false);
         recipe.setArguments(Arrays.<Object>asList(new ExampleImpl()));
+        recipe.setArgTypes(Arrays.<String>asList((String) null));
+        ExecutionContext.Holder.setContext(new BlueprintRepository(container));
+        recipe.create();
+    }
+
+
+    @Test
+    public void constructorWithGenerics() throws Exception {
+        BlueprintContainerImpl container = new BlueprintContainerImpl(null, null, null, null, null, null, null, null, null);
+        BeanRecipe recipe = new BeanRecipe("example", container, MessageDriven.class, false);
+        recipe.setArguments(Arrays.<Object>asList(new DummySequentialPolicy()));
         recipe.setArgTypes(Arrays.<String>asList((String) null));
         ExecutionContext.Holder.setContext(new BlueprintRepository(container));
         recipe.create();
