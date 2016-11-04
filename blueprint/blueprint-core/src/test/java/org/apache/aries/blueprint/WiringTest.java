@@ -468,6 +468,14 @@ public class WiringTest extends AbstractBlueprintTest {
         assertTrue(obj instanceof Primavera);
         assertEquals("stringToo", ((Primavera) obj).prop);
     }
+
+    public void testMixedGenerics() throws Exception {
+        ComponentDefinitionRegistryImpl registry = parse("/test-generics-mix.xml");
+        Repository repository = new TestBlueprintContainer(registry).getRepository();
+        repository.create("typedTracker");
+        repository.create("tracker");
+        repository.create("typedClassTracker");
+    }
     
     public void testCircular() throws Exception {
         BlueprintRepository repository = createBlueprintContainer().getRepository();
